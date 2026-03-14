@@ -3,84 +3,83 @@
 <head>
 <meta charset="UTF-8">
 <title>Try This Outfit On You</title>
-
 <style>
 body{
-font-family:system-ui;
-max-width:800px;
-margin:40px auto;
-text-align:center;
+  font-family:system-ui;
+  max-width:800px;
+  margin:40px auto;
+  text-align:center;
 }
-
 button{
-background:#b07c69;
-color:white;
-border:none;
-padding:14px 24px;
-font-size:18px;
-border-radius:8px;
-cursor:pointer;
+  background:#b07c69;
+  color:white;
+  border:none;
+  padding:14px 24px;
+  font-size:18px;
+  border-radius:8px;
+  cursor:pointer;
 }
-
 #result img{
-max-width:100%;
-margin-top:20px;
-border-radius:10px;
+  max-width:100%;
+  margin-top:20px;
+  border-radius:10px;
+}
+#status{
+  margin-top:20px;
+  font-size:18px;
 }
 </style>
-
 </head>
-
 <body>
 
 <h2>See This Outfit On You</h2>
-
 <p>Upload a full body photo and see this outfit on yourself.</p>
 
 <input type="file" id="photo" accept="image/*">
-
 <br><br>
-
 <button onclick="generate()">Try The Outfit</button>
 
 <div id="status"></div>
-
 <div id="result"></div>
 
 <script>
+async function generate() {
+  const fileInput = document.getElementById("photo");
 
-async function generate(){
+  if (!fileInput.files.length) {
+    alert("Upload a photo first");
+    return;
+  }
 
-const fileInput = document.getElementById("photo")
+  const file = fileInput.files[0];
+  document.getElementById("status").innerHTML = "Creating your preview...";
+  document.getElementById("result").innerHTML = "";
 
-if(!fileInput.files.length){
-alert("Upload a photo first")
-return
+  const formData = new FormData();
+  formData.append("photo", file);
+
+  try {
+    const res = await fetch("https://try-on.lisa-668.workers.dev", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    document.getElementById("status").innerHTML = "";
+
+    if (data.image) {
+      document.getElementById("result").innerHTML = `<img src="${data.image}" alt="Generated outfit preview">`;
+    } else if (data.error) {
+      document.getElementById("result").innerHTML = `<p>${data.error}</p>`;
+    } else {
+      document.getElementById("result").innerHTML = `<p>Something went wrong.</p>`;
+    }
+  } catch (err) {
+    document.getElementById("status").innerHTML = "";
+    document.getElementById("result").innerHTML = `<p>Error connecting to the worker.</p>`;
+  }
 }
-
-const file = fileInput.files[0]
-
-document.getElementById("status").innerHTML="Creating your preview..."
-
-const formData = new FormData()
-formData.append("photo",file)
-
-const res = await fetch("YOUR_WORKER_URL",{
-method:"POST",
-body:formData
-})
-
-const data = await res.json()
-
-document.getElementById("status").innerHTML=""
-
-if(data.image){
-document.getElementById("result").innerHTML =
-`<img src="${data.image}">`
-}
-
-}
-
 </script>
 
 </body>
